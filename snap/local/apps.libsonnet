@@ -17,6 +17,38 @@
             "x11",
         ],
     },
+    "mycroft-messagebus": {
+        command: "start-messagebus",
+        daemon: "simple",
+        "environment":{ "LANG":"C.UTF-8", "LC_ALL":"C.UTF-8"},
+        plugs: ["mount-observe", "network", "network-bind"],
+    },
+    "audio": {
+        command: "start-audio",
+        "environment":{ "LANG":"C.UTF-8", "LC_ALL":"C.UTF-8"},
+        plugs: [
+            "audio-playback",
+            "audio-record",
+            "mount-observe",
+            "network",
+            "network-bind",
+            "pulseaudio",
+            "home"
+        ]
+    },
+    "speech-client":{
+        command: "start-speech-client",
+        daemon: "simple",
+        "environment":{ "LANG":"C.UTF-8", "LC_ALL":"C.UTF-8"},
+        plugs: [
+            "audio-playback",
+            "audio-record",
+            "mount-observe",
+            "network",
+            "network-bind",
+            "pulseaudio"
+        ]
+    },
 
   # mycroftd:
   #   command: mycroft-launch

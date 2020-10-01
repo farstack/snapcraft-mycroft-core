@@ -19,7 +19,7 @@ snapcraft {
         Installing skills by voice seems to be broken for now, but you can use
         the `mycroft.msm` command to list, install, and remove skills.
     |||,
-    "adopt-info": "mycroft",
+    "version":"10",
     grade: "devel",
     confinement: "devmode",
     base: "core18",

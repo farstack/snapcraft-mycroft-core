@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd $SNAP_DATA
+$SNAP/usr/bin/python3 -m mycroft.client.speech

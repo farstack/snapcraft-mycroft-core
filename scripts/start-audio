@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cd $SNAP_DATA
+$SNAP/bin/snapcraft-preload $SNAP/bin/mycroft-audio

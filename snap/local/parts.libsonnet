@@ -21,6 +21,14 @@
         |||,
         "build-packages": ["rsync"],
     },
+    "mycroft-normal": {
+        after: ["snapcraft-preload"],
+        source: "https://github.com/MycroftAI/mycroft-core.git",
+        "source-type": "git",
+        "plugin": "python",
+        "python-version":"python3",
+        "build-packages": ["build-essential", "python3-dev", "libeccodes-dev", "libssl-dev", "libffi-dev", "libxml2-dev", "libxslt1-dev", "zlib1g-dev", "python3-psutil", "libpulse-dev", "swig", "gcc", "g++", "python3-wheel", "libfann2", "libfann-dev"],
+    },
 
     "mycroft-conf": {
         plugin: "nil",
@@ -57,6 +65,7 @@
         },
         stage: ["-usr/bin/sudo"],
         "stage-packages": [
+            "locales-all",
             "yad",
             "autoconf",
             "automake",
@@ -141,7 +150,7 @@
         "source-type": "local",
         plugin: "dump",
         organize: {"mycroft-*": "bin/"},
-        stage: ["bin/mycroft-*"]
+        stage: ["bin/mycroft-*", "start-*"]
     },
 
     "desktop-file": {
