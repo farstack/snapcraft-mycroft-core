@@ -1,93 +1,18 @@
 #!/bin/bash
 
-#export SWIG_LIB="$SNAP/usr/share/swig3.0"
-#export GIT_EXEC_PATH="$SNAP/usr/lib/git-core/"
-needs_update=true
-
-VENV_FOLDER="$SNAP_USER_COMMON/venv"
-
-. "$SNAP_USER_DATA/.mycroft_revision" 2>/dev/null || true
-if [ "$MYCROFT_LAST_REVISION" = "$SNAP_REVISION" ]; then
-    needs_update=false
-fi
-
-if [ ! -d "$SNAP_USER_COMMON/mycroft-core" ]; then
-    if [ -d "$SNAP_USER_COMMON/mycroft" ]; then
-        mv "$SNAP_USER_COMMON/mycroft" "$SNAP_USER_COMMON/mycroft-core"
-    else
-        mkdir -p "$SNAP_USER_COMMON/mycroft-core"
-    fi
-fi
-
-# Check if Precise Engine and model already exist, if not get from latest install.
-if [ ! -d "$SNAP_USER_DATA/.mycroft/precise" ]; then
-    mkdir -p "$SNAP_USER_DATA/.mycroft/precise"
-    if [ ! -d "$SNAP_USER_DATA/.mycroft/precise/precise-engine" ]; then
-        # copy tarball, otherwise Mycroft downloads a fresh copy
-        cp ${SNAP}/precise/precise-engine_*.tar.gz "$SNAP_USER_DATA/.mycroft/precise/"
-        tar -zxf ${SNAP}/precise/precise-engine_*.tar.gz -C "$SNAP_USER_DATA/.mycroft/precise"
-    fi
-    if [ ! -f "$SNAP_USER_DATA/.mycroft/precise/hey-mycroft.pb" ]; then
-        tar -zxf "$SNAP/precise/hey-mycroft.tar.gz" -C "$SNAP_USER_DATA/.mycroft/precise/"
-    fi
-fi
-
-if [ $needs_update = true ]; then
-    cd "$SNAP_USER_COMMON/mycroft-core"
-
-    [ -f "$SNAP_USER_COMMON/mycroft-core/.version" ] && ACTION="Updating" || ACTION="Installing"
-
-    rsync -rv --delete "$SNAP/mycroft-source/" \
-        "$SNAP_USER_COMMON/mycroft-core/" | \
-        yad --progress --pulsate --image="$SNAP/usr/share/icons/mycroft.png" \
-        --title="Mycroft" --text="$ACTION mycroft" --width=400 --center \
-        --no-buttons --auto-close --on-top --no-escape
-
-    echo "Creating virtualenv in $VENV_FOLDER"
-    python3 -m venv "$VENV_FOLDER"  --without-pip
-    ln -sf "$(dirname "$SNAP")/current/usr/bin/python3" \
-        "$VENV_FOLDER/bin/python3"
-
-    curl -o "$TMPDIR/get-pip.py" https://bootstrap.pypa.io/get-pip.py 2>&1 | \
-    stdbuf -oL tr '\r' '\n' | \
-    sed -u -E \
-        's/^ *([0-9][0-9]*).*( [0-9].*$)/\1\n#Downloading Python PIP(\2)/' | \
-    yad --progress --image="$SNAP/usr/share/icons/mycroft.png" \
-        --title="Mycroft" --width=400 --center --no-buttons --auto-close \
-        --on-top --no-escape
-
-    "$VENV_FOLDER/bin/python3" "$TMPDIR/get-pip.py" | \
-    yad --progress --pulsate --image="$SNAP/usr/share/icons/mycroft.png" \
-        --title="Mycroft" --text="Installing Python PIP" --width=400 --center \
-        --no-buttons --auto-close --on-top --no-escape
-
-    sed -i 's|^def rmtree(dir, ignore_errors=False):|def rmtree(dir, ignore_errors=True):|' \
-        "$VENV_FOLDER/lib/python3.?/site-packages/pip/_internal/utils/misc.py"
-
-    . "$VENV_FOLDER/bin/activate"
-
-    pip install  "$SNAP_USER_COMMON/mycroft-core/" | \
-    stdbuf -oL tr '\r' '\n' | \
-    yad --progress --pulsate --image="$SNAP/usr/share/icons/mycroft.png" --title="Mycroft" --text="Installing Mycroft dependencies" --width=400 --center --no-buttons --auto-close --on-top --no-escape
-
-    echo "$SNAP_REVISION" > "$SNAP_USER_COMMON/.revision"
-else
-    . "$VENV_FOLDER/bin/activate"
-fi
+cd $SNAP_USER_COMMON
 
 if [ ! -d "$SNAP_USER_COMMON/logs" ]; then
     mkdir -p "$SNAP_USER_COMMON/logs"
 fi
 
-if [ $needs_update = true ]; then
-    echo "MYCROFT_LAST_REVISION=$SNAP_REVISION" > "$SNAP_USER_DATA/.mycroft_revision"
-fi
 
-snapcraft-preload mycroft-messagebus >> /$SNAP_USER_COMMON/logs/bus.log 2>&1 &
-snapcraft-preload mycroft-enclosure-client >> /$SNAP_USER_COMMON/logs/enclosure.log 2>&1 &
+#snapcraft-preload mycroft-messagebus >> /$SNAP_USER_COMMON/logs/bus.log 2>&1 &
+#snapcraft-preload mycroft-enclosure-client >> /$SNAP_USER_COMMON/logs/enclosure.log 2>&1 &
 snapcraft-preload mycroft-audio >> /$SNAP_USER_COMMON/logs/audio.log 2>&1 &
-snapcraft-preload mycroft-speech-client >> /$SNAP_USER_COMMON/logs/voice.log 2>&1 &
+#snapcraft-preload mycroft-speech-client >> /$SNAP_USER_COMMON/logs/voice.log 2>&1 &
 snapcraft-preload mycroft-skills >> /$SNAP_USER_COMMON/logs/skills.log 2>&1 &
+
 
 mycroft-cli-client
 
