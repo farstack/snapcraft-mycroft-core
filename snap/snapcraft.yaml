@@ -129,8 +129,6 @@ apps:
       SWIG_LIB: $SNAP/usr/share/swig3.0
       GIT_EXEC_PATH: $SNAP/usr/lib/git-core/
       MPG123_MODDIR: $SNAP/usr/lib/x86_64-linux-gnu/mpg123
-    command-chain:
-    - snap/command-chain/alsa-launch
     command: bin/mycroft-launch
     desktop: usr/share/applications/mycroft.desktop
     extensions:
@@ -138,27 +136,16 @@ apps:
     plugs:
     - audio-playback
     - audio-record
+    - pulseaudio
     - desktop
     - desktop-legacy
     - mount-observe
     - network
     - network-bind
-    - pulseaudio
-    - unity7
-    - wayland
-    - x11
 
 parts:
 
-  alsa-mixin:
-    plugin: dump
-    source: https://github.com/diddlesnaps/snapcraft-alsa.git
-    source-subdir: snapcraft-assets
-    build-packages: [libasound2-dev]
-    stage-packages: [libasound2, libasound2-plugins]
-
   desktop-file:
-    build-packages: []
     organize:
       mycroft.desktop: usr/share/applications/mycroft.desktop
       mycroft.png: usr/share/icons/mycroft.png
@@ -189,7 +176,7 @@ parts:
     stage-packages:
     - libpcre2-8-0
   mycroft:
-    after: [snapcraft-preload, alsa-mixin]
+    after: [snapcraft-preload]
     source: https://github.com/mycroftai/mycroft-core.git
     plugin: python
     python-version: python3
@@ -202,10 +189,9 @@ parts:
       snapcraftctl build
 
   mycroft-conf:
-    build-packages: []
-    override-build: 'install -m644 -D -t $SNAPCRAFT_PART_INSTALL/etc/mycroft mycroft.conf
+    override-build: |
+      install -m644 -D -t $SNAPCRAFT_PART_INSTALL/etc/mycroft mycroft.conf
 
-      '
     override-pull: "cat  > mycroft.conf <<EOF\n{\n    \"enclosure\": {\n        \"\
       update\": \"false\"\n    },\n    \"data_dir\": \"~/../common/mycroft-data\"\
       ,\n    \"log_dir\": \"~/../common/logs\"\
@@ -318,16 +304,4 @@ parts:
     python-version: python3
 
 
-     
-      #mycroft-audio-record
-      #fallback-wolfram-alpha
-      #mycroft-ip
-      #mycroft-joke
-      #mycroft-stock
-      #mycroft-date-time
-      #mycroft-alarm
-      #mycroft-wiki
-      #mycroft-npr-news
-      #mycroft-volume
-      #mycroft-weather
       

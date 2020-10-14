@@ -7,18 +7,11 @@ if [ ! -d "$SNAP_USER_COMMON/logs" ]; then
 fi
 
 
-#snapcraft-preload mycroft-messagebus >> /$SNAP_USER_COMMON/logs/bus.log 2>&1 &
-#snapcraft-preload mycroft-enclosure-client >> /$SNAP_USER_COMMON/logs/enclosure.log 2>&1 &
 snapcraft-preload mycroft-audio >> /$SNAP_USER_COMMON/logs/audio.log 2>&1 &
-#snapcraft-preload mycroft-speech-client >> /$SNAP_USER_COMMON/logs/voice.log 2>&1 &
-snapcraft-preload mycroft-skills >> /$SNAP_USER_COMMON/logs/skills.log 2>&1 &
-
+audio_pid=$!
 
 mycroft-cli-client
 
-echo "Stopping all processes..."
-killall mycroft-skills
-killall mycroft-enclosure-client
-killall mycroft-speech-client
-killall mycroft-audio
+echo "Stopping all audio..."
+kill "$audio_pid"
 echo "Stopped"
