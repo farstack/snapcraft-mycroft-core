@@ -133,6 +133,7 @@ apps:
     - snap/command-chain/alsa-launch
     command: bin/mycroft-launch
     desktop: usr/share/applications/mycroft.desktop
+    autostart: mycroft.autostart.desktop
     extensions:
     - gnome-3-28
     plugs:
@@ -161,6 +162,7 @@ parts:
     build-packages: []
     organize:
       mycroft.desktop: usr/share/applications/mycroft.desktop
+      mycroft.autostart.desktop: usr/share/applications/mycroft.autostart.desktop
       mycroft.png: usr/share/icons/mycroft.png
     plugin: dump
     source: desktop

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=mycroft
+Exec=mycroft 
+Type=Application
+Terminal=false
+Categories=Utility;
