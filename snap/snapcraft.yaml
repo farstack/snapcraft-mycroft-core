@@ -135,7 +135,7 @@ apps:
       - snap/command-chain/alsa-launch
       - bin/copy-autostart
       - bin/snapcraft-preload
-    command: start_useraudio
+    command: bin/start_useraudio
     autostart: mycroft.useraudio.autostart.desktop
     environment:
       SWIG_LIB: $SNAP/usr/share/swig3.0
