@@ -2,16 +2,6 @@
 
 cd $SNAP_USER_COMMON
 
-if [ ! -d "$SNAP_USER_COMMON/logs" ]; then
-    mkdir -p "$SNAP_USER_COMMON/logs"
-fi
-
-
-snapcraft-preload mycroft-audio >> /$SNAP_USER_COMMON/logs/audio.log 2>&1 &
-audio_pid=$!
+${SNAP_INSTANCE_NAME}.useraudio &
 
 mycroft-cli-client
-
-echo "Stopping all audio..."
-kill "$audio_pid"
-echo "Stopped"

@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=mycroft
-Exec=mycroft 
+Exec=mycroft.useraudio
 Type=Application
 Terminal=false
 Categories=Utility;

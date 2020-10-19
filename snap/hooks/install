@@ -8,4 +8,8 @@ else
     chmod 1777 "$SNAP_COMMON/vartmp"
 fi
 
-snapctl stop --disable mycroft.audio
+# if this is not Ubuntu Core, then disable the audio service
+if ! grep -q snap_core= /proc/cmdline
+then 
+    snapctl stop --disable mycroft.audio
+fi
