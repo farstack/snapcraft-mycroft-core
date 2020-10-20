@@ -1,7 +1,21 @@
 #!/bin/bash
 
+exit_status=0
+
 cd $SNAP_USER_COMMON
 
-${SNAP_INSTANCE_NAME}.useraudio &
+$SNAP/bin/start_useraudio 2>&1 >/dev/null &
+audio_pid=$?
+
+cleanup() {
+    kill $audio_pid
+    exit $exit_status
+}
+
+trap cleanup INT TERM
 
 mycroft-cli-client
+# If the script exits on its own something went wrong.
+# Exit with this exit code.
+exit_status=$?
+cleanup

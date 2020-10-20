@@ -130,39 +130,22 @@ apps:
     - network-bind
 
 
-  useraudio:
+  mycroft:
     command-chain: 
       - snap/command-chain/alsa-launch
       - bin/copy-autostart
       - bin/snapcraft-preload
-    command: bin/start_useraudio
-    autostart: mycroft.useraudio.autostart.desktop
-    environment:
-      SWIG_LIB: $SNAP/usr/share/swig3.0
-      GIT_EXEC_PATH: $SNAP/usr/lib/git-core/
-      MPG123_MODDIR: $SNAP/usr/lib/x86_64-linux-gnu/mpg123
-    plugs:
-      - alsa
-      - audio-playback
-      - audio-record
-      - pulseaudio
-      - desktop
-      - desktop-legacy
-      - mount-observe
-      - network
-      - network-bind
-      - x11
-
-  mycroft:
-    environment:
-      SWIG_LIB: $SNAP/usr/share/swig3.0
-      GIT_EXEC_PATH: $SNAP/usr/lib/git-core/
-      MPG123_MODDIR: $SNAP/usr/lib/x86_64-linux-gnu/mpg123
     command: bin/mycroft-launch
+    environment:
+      SWIG_LIB: $SNAP/usr/share/swig3.0
+      GIT_EXEC_PATH: $SNAP/usr/lib/git-core/
+      MPG123_MODDIR: $SNAP/usr/lib/x86_64-linux-gnu/mpg123
     desktop: usr/share/applications/mycroft.desktop
+    autostart: mycroft.desktop
     extensions:
     - gnome-3-28
     plugs:
+    - alsa
     - audio-playback
     - audio-record
     - pulseaudio
@@ -171,13 +154,13 @@ apps:
     - mount-observe
     - network
     - network-bind
+    - x11
 
 parts:
 
   desktop-file:
     organize:
-      mycroft.desktop: usr/share/applications/mycroft.desktop
-      mycroft.autostart.desktop: usr/share/applications/mycroft.autostart.desktop
+      '*.desktop': usr/share/applications/
       mycroft.png: usr/share/icons/mycroft.png
       copy-autostart: bin/copy-autostart
     plugin: dump
@@ -225,10 +208,10 @@ parts:
     build-packages: [python3-wheel, gcc, swig]
     stage-packages: [python3-pyaudio, python3-six, python3-fann2]
     python-packages: [six==1.13.0, pocketsphinx==0.1.0]
-    #override-build: |
-    #  echo "LS0tIGxvY2sucHkub3JpZwkyMDIwLTEwLTEwIDEyOjAwOjQ4Ljc0Njc4Mzc1NCAtMDcwMAorKysgbG9jay5weS5uZXcJMjAyMC0xMC0xMCAxMjowMToyMS4yNzQ0NTk4OTggLTA3MDAKQEAgLTk4LDggKzk4LDggQEAKIAogICAgICMKICAgICAjIENsYXNzIGNvbnN0YW50cwotICAgIERJUkVDVE9SWSA9ICcvdG1wL215Y3JvZnQnCi0gICAgRklMRSA9ICcve30ucGlkJworICAgIERJUkVDVE9SWSA9ICcvdG1wJworICAgIEZJTEUgPSAnL215Y3JvZnQue30ucGlkJwogCiAgICAgIwogICAgICMgQ29uc3RydWN0b3IK" |
-    #  base64 -d | patch mycroft/lock/__init__.py
-    #  snapcraftctl build
+    override-build: |
+      echo "LS0tIGxvY2sucHkub3JpZwkyMDIwLTEwLTEwIDEyOjAwOjQ4Ljc0Njc4Mzc1NCAtMDcwMAorKysgbG9jay5weS5uZXcJMjAyMC0xMC0xMCAxMjowMToyMS4yNzQ0NTk4OTggLTA3MDAKQEAgLTk4LDggKzk4LDggQEAKIAogICAgICMKICAgICAjIENsYXNzIGNvbnN0YW50cwotICAgIERJUkVDVE9SWSA9ICcvdG1wL215Y3JvZnQnCi0gICAgRklMRSA9ICcve30ucGlkJworICAgIERJUkVDVE9SWSA9ICcvdG1wJworICAgIEZJTEUgPSAnL215Y3JvZnQue30ucGlkJwogCiAgICAgIwogICAgICMgQ29uc3RydWN0b3IK" |
+      base64 -d | patch mycroft/lock/__init__.py
+      snapcraftctl build
 
   mycroft-conf:
     override-build: |
@@ -329,8 +312,6 @@ parts:
     plugin: dump
     source: scripts
     source-type: local
-    stage:
-    - bin/mycroft-*
     stage-packages: []
   snapcraft-preload:
     build-packages:

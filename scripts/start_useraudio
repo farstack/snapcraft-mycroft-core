@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh 
 # Credit: https://gist.github.com/darth-veitcher/f47eb0a52ae42a1c5e9a65adca460723
 
 PIDFILE=/tmp/useraudio.pid
@@ -28,6 +28,12 @@ else
     exit 1
   fi
 fi
+
+TMPDIR=/tmp/audio
+export TMPDIR
+mkdir -p $TMPDIR
+
+cd $SNAP_USER_COMMON
 
 $SNAP/bin/mycroft-audio
 
