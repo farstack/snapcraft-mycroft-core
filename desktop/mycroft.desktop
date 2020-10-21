@@ -6,6 +6,6 @@ Comment=Mycroft: your AI personal assistant
 Exec=mycroft
 Icon=/usr/share/icons/mycroft.png
 Categories=Utilities;
-Terminal=false
+Terminal=true
 StartupNotify=false
 Keywords=ai;assistant

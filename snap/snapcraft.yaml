@@ -167,15 +167,12 @@ parts:
     source: desktop
   
   alsa-mixin:
+    after: [mycroft-deps]
     plugin: dump
     source: https://github.com/diddlesnaps/snapcraft-alsa.git
     source-subdir: snapcraft-assets
     build-packages:
       - libasound2-dev
-    stage-packages:
-      - libasound2
-      - libasound2-plugins
-      - yad
 
   mimic:
     after:
@@ -247,23 +244,18 @@ parts:
     organize:
       usr/bin/mpg123.bin: usr/bin/mpg123
       usr/lib/*/*fann*.so*: usr/lib/
-    override-build: "snapcraftctl build\nln -sf aclocal-1.15 $SNAPCRAFT_PART_INSTALL/usr/bin/aclocal\n\
-      ln -sf automake-1.15 $SNAPCRAFT_PART_INSTALL/usr/bin/automake\nfor sofile in\
-      \ libc.so libm.so libpthread.so; do\n    sed -Ei 's|(/usr/lib/$SNAPCRAFT_ARCH_TRIPLET)|/snap/mycroft/current\\\
-      1|g' $SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/$sofile\ndone\n"
     plugin: nil
     stage:
     - -usr/bin/sudo
     stage-packages:
-    - yad
     - psmisc
     #- autoconf
     #- automake
-    #- binutils
+    - binutils
     #- bison
     #- build-essential
     #- cmake
-    #- coreutils
+    - coreutils
     - curl
     - flac
     - freeglut3
@@ -283,11 +275,11 @@ parts:
     - libjack-jackd2-0
     #- libjpeg-dev
     #- libpcre2-dev
-    #- portaudio19-dev
+    - portaudio19-dev
     - libslang2
     #- libssl-dev
     - libtool
-    #- libvlc-dev
+    - libvlc-dev
     - locales-all
     - make
     - mpg123
@@ -305,6 +297,9 @@ parts:
     - swig
     - vlc
     - zlib1g
+    - libasound2
+    - libasound2-plugins
+    - yad
   scripts:
     build-packages: []
     organize:
