@@ -70,7 +70,8 @@ apps:
   
   
   skills:
-    command: $SNAP/bin/snapcraft-preload $SNAP/bin/mycroft-skills
+    command-chain: [bin/snapcraft-preload] 
+    command: bin/start_skills
     daemon: simple
     environment:
       SWIG_LIB: $SNAP/usr/share/swig3.0
@@ -157,29 +158,54 @@ apps:
     - x11
 
 parts:
+  snapcraft-preload:
+    build-packages:
+    - try:
+      - gcc-multilib
+      - g++-multilib
+    plugin: cmake
+    source: https://github.com/forslund/snapcraft-preload.git
+    source-branch: no-as-needed
+    stage-packages:
+    - try:
+      - lib32stdc++6
 
-  desktop-file:
-    organize:
-      '*.desktop': usr/share/applications/
-      mycroft.png: usr/share/icons/mycroft.png
-      copy-autostart: bin/copy-autostart
-    plugin: dump
-    source: desktop
-  
+  mycroft:
+    after: [snapcraft-preload]
+    source: https://github.com/mycroftai/mycroft-core.git
+    plugin: python
+    python-version: python3
+    build-packages: 
+      - python3-wheel
+      - gcc
+      - swig
+      - g++
+      - libfann2
+      - libfann-dev
+    stage-packages: [python3-pyaudio, python3-six, libfann2, git, python3-pip]
+#    python-packages: [six==1.13.0, pocketsphinx==0.1.0, fann2==1.0.7, padatious==0.4.8]
+    python-packages: [fann2==1.0.7]
+    override-build: |
+      echo "LS0tIGxvY2sucHkub3JpZwkyMDIwLTEwLTEwIDEyOjAwOjQ4Ljc0Njc4Mzc1NCAtMDcwMAorKysgbG9jay5weS5uZXcJMjAyMC0xMC0xMCAxMjowMToyMS4yNzQ0NTk4OTggLTA3MDAKQEAgLTk4LDggKzk4LDggQEAKIAogICAgICMKICAgICAjIENsYXNzIGNvbnN0YW50cwotICAgIERJUkVDVE9SWSA9ICcvdG1wL215Y3JvZnQnCi0gICAgRklMRSA9ICcve30ucGlkJworICAgIERJUkVDVE9SWSA9ICcvdG1wJworICAgIEZJTEUgPSAnL215Y3JvZnQue30ucGlkJwogCiAgICAgIwogICAgICMgQ29uc3RydWN0b3IK" |
+      base64 -d | patch mycroft/lock/__init__.py
+      snapcraftctl build
+
+
   alsa-mixin:
-    after: [mycroft-deps]
     plugin: dump
     source: https://github.com/diddlesnaps/snapcraft-alsa.git
     source-subdir: snapcraft-assets
     build-packages:
       - libasound2-dev
 
+  static:
+    plugin: dump
+    source: static
+
+
   mimic:
-    after:
-    - snapcraft-preload
-    build-packages:
-    - libpcre2-dev
-    - portaudio19-dev
+    after: [snapcraft-preload, mycroft]
+    build-packages: [libpcre2-dev, portaudio19-dev]
     configflags:
     - --prefix=/usr
     - --disable-static
@@ -197,36 +223,7 @@ parts:
     source-type: git
     stage-packages:
     - libpcre2-8-0
-  mycroft:
-    after: [snapcraft-preload]
-    source: https://github.com/mycroftai/mycroft-core.git
-    plugin: python
-    python-version: python3
-    build-packages: [python3-wheel, gcc, swig]
-    stage-packages: [python3-pyaudio, python3-six, python3-fann2]
-    python-packages: [six==1.13.0, pocketsphinx==0.1.0]
-    override-build: |
-      echo "LS0tIGxvY2sucHkub3JpZwkyMDIwLTEwLTEwIDEyOjAwOjQ4Ljc0Njc4Mzc1NCAtMDcwMAorKysgbG9jay5weS5uZXcJMjAyMC0xMC0xMCAxMjowMToyMS4yNzQ0NTk4OTggLTA3MDAKQEAgLTk4LDggKzk4LDggQEAKIAogICAgICMKICAgICAjIENsYXNzIGNvbnN0YW50cwotICAgIERJUkVDVE9SWSA9ICcvdG1wL215Y3JvZnQnCi0gICAgRklMRSA9ICcve30ucGlkJworICAgIERJUkVDVE9SWSA9ICcvdG1wJworICAgIEZJTEUgPSAnL215Y3JvZnQue30ucGlkJwogCiAgICAgIwogICAgICMgQ29uc3RydWN0b3IK" |
-      base64 -d | patch mycroft/lock/__init__.py
-      snapcraftctl build
-
-  mycroft-conf:
-    override-build: |
-      install -m644 -D -t $SNAPCRAFT_PART_INSTALL/etc/mycroft mycroft.conf
-
-    override-pull: |
-      cat  > mycroft.conf <<EOF
-      {
-        "enclosure": { "update": "false"},
-        "data_dir": "~/../common/mycroft-data",
-        "log_dir": "~/../common/logs",
-        "play_ogg_cmdline": "vlc --intf dummy --play-and-exit %1"
-      }
-      EOF
-
-    plugin: nil
-    stage-packages:
-    - libfann-dev
+  
   precise:
     plugin: nil
     build-packages:
@@ -237,96 +234,11 @@ parts:
     override-build: |
       install -m644 -D -t $SNAPCRAFT_PART_INSTALL/precise precise-engine_*.tar.gz
       install -m644 -D -t $SNAPCRAFT_PART_INSTALL/precise hey-mycroft.tar.gz
-  mycroft-deps:
-    after:
-    - mimic
-    - snapcraft-preload
-    organize:
-      usr/bin/mpg123.bin: usr/bin/mpg123
-      usr/lib/*/*fann*.so*: usr/lib/
-    plugin: nil
-    stage:
-    - -usr/bin/sudo
-    stage-packages:
-    - psmisc
-    #- autoconf
-    #- automake
-    - binutils
-    #- bison
-    #- build-essential
-    #- cmake
-    - coreutils
-    - curl
-    - flac
-    - freeglut3
-    #- g++
-    #- gcc
-    - git
-    - jq
-    - libportaudio2
-    #- libc++-dev
-    #- libc6-dev
-    - libfann-dev
-    - libffi-dev
-    - libglib2.0-dev
-    #- libglu1-mesa
-    - libgpm2
-    - libicu-dev
-    - libjack-jackd2-0
-    #- libjpeg-dev
-    #- libpcre2-dev
-    - portaudio19-dev
-    - libslang2
-    #- libssl-dev
-    - libtool
-    - libvlc-dev
-    - locales-all
-    - make
-    - mpg123
-    - mplayer
-    - pkg-config
-    - procps
-    - pulseaudio-utils
-    #- python3
-    #- python3-dev
-    #- python3-pip
-    #- python3-setuptools
-    #- python3-venv
-    #- rsync
-    #- screen
-    - swig
-    - vlc
-    - zlib1g
-    - libasound2
-    - libasound2-plugins
-    - yad
-  scripts:
-    build-packages: []
-    organize:
-      '*': bin/
-    plugin: dump
-    source: scripts
-    source-type: local
-    stage-packages: []
-  snapcraft-preload:
-    build-packages:
-    - try:
-      - gcc-multilib
-      - g++-multilib
-    plugin: cmake
-    source: https://github.com/forslund/snapcraft-preload.git
-    source-branch: no-as-needed
-    stage-packages:
-    - try:
-      - lib32stdc++6
-
-  
   
 
   mycroft-installer:
     source: https://github.com/MycroftAI/skill-installer.git
-    plugin: python
-    python-version: python3
+    plugin: dump
+    organize:
+      '*': lib/python3.6/site-packages/mycroft-installer/
 
-
-      
