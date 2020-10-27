@@ -2,5 +2,5 @@
 Name=mycroft
 Exec=mycroft 
 Type=Application
-Terminal=false
+Terminal=true
 Categories=Utility;

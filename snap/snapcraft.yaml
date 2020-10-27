@@ -179,7 +179,8 @@ parts:
     - libpcre2-8-0
   mycroft:
     after: [snapcraft-preload]
-    source: https://github.com/mycroftai/mycroft-core.git
+    source: https://github.com/farstack/mycroft-core.git
+    source-branch: hardcode
     plugin: python
     python-version: python3
     build-packages: [python3-wheel, gcc, swig]
