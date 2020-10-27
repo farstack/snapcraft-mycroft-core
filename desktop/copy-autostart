@@ -1,0 +1,6 @@
+#!/bin/sh
+
+mkdir -p $SNAP_USER_DATA/.config/autostart
+cp $SNAP/usr/share/applications/mycroft.desktop $SNAP_USER_DATA/.config/autostart
+
+exec "$@"

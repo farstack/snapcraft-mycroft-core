@@ -16,6 +16,9 @@ description: |
   Installing skills by voice seems to be broken for now, but you can use
   the `mycroft.msm` command to list, install, and remove skills.
 
+environment:
+  LOCPATH: $SNAP/usr/lib/locale
+
 plugs:
   gnome-3-28-1804:
     default-provider: gnome-3-28-1804:gnome-3-28-1804
@@ -80,7 +83,7 @@ apps:
     - network
     - network-bind
 
-
+    
   audio:
     command: $SNAP/bin/snapcraft-preload $SNAP/bin/mycroft-audio
     daemon: simple
@@ -88,6 +91,8 @@ apps:
       SWIG_LIB: $SNAP/usr/share/swig3.0
       GIT_EXEC_PATH: $SNAP/usr/lib/git-core/
       MPG123_MODDIR: $SNAP/usr/lib/x86_64-linux-gnu/mpg123
+      PULSE_RUNTIME_PATH: /var/run/pulse
+      PULSE_SYSTEM: 1
     extensions:
     - gnome-3-28
     plugs:
@@ -124,17 +129,23 @@ apps:
     - network
     - network-bind
 
+
   mycroft:
+    command-chain: 
+      - snap/command-chain/alsa-launch
+      - bin/copy-autostart
+      - bin/snapcraft-preload
+    command: bin/mycroft-launch
     environment:
       SWIG_LIB: $SNAP/usr/share/swig3.0
       GIT_EXEC_PATH: $SNAP/usr/lib/git-core/
       MPG123_MODDIR: $SNAP/usr/lib/x86_64-linux-gnu/mpg123
-    command: bin/mycroft-launch
     desktop: usr/share/applications/mycroft.desktop
-    autostart: mycroft.autostart.desktop
+    autostart: mycroft.desktop
     extensions:
     - gnome-3-28
     plugs:
+    - alsa
     - audio-playback
     - audio-record
     - pulseaudio
@@ -143,17 +154,26 @@ apps:
     - mount-observe
     - network
     - network-bind
+    - x11
 
 parts:
 
   desktop-file:
     organize:
-      mycroft.desktop: usr/share/applications/mycroft.desktop
-      mycroft.autostart.desktop: usr/share/applications/mycroft.autostart.desktop
+      '*.desktop': usr/share/applications/
       mycroft.png: usr/share/icons/mycroft.png
+      copy-autostart: bin/copy-autostart
     plugin: dump
     source: desktop
-    stage-packages: []
+  
+  alsa-mixin:
+    after: [mycroft-deps]
+    plugin: dump
+    source: https://github.com/diddlesnaps/snapcraft-alsa.git
+    source-subdir: snapcraft-assets
+    build-packages:
+      - libasound2-dev
+
   mimic:
     after:
     - snapcraft-preload
@@ -195,10 +215,16 @@ parts:
     override-build: |
       install -m644 -D -t $SNAPCRAFT_PART_INSTALL/etc/mycroft mycroft.conf
 
-    override-pull: "cat  > mycroft.conf <<EOF\n{\n    \"enclosure\": {\n        \"\
-      update\": \"false\"\n    },\n    \"data_dir\": \"~/../common/mycroft-data\"\
-      ,\n    \"log_dir\": \"~/../common/logs\"\
-      ,\n    \"play_ogg_cmdline\": \"vlc --intf dummy --play-and-exit %1\"}\nEOF\n"
+    override-pull: |
+      cat  > mycroft.conf <<EOF
+      {
+        "enclosure": { "update": "false"},
+        "data_dir": "~/../common/mycroft-data",
+        "log_dir": "~/../common/logs",
+        "play_ogg_cmdline": "vlc --intf dummy --play-and-exit %1"
+      }
+      EOF
+
     plugin: nil
     stage-packages:
     - libfann-dev
@@ -219,72 +245,69 @@ parts:
     organize:
       usr/bin/mpg123.bin: usr/bin/mpg123
       usr/lib/*/*fann*.so*: usr/lib/
-    override-build: "snapcraftctl build\nln -sf aclocal-1.15 $SNAPCRAFT_PART_INSTALL/usr/bin/aclocal\n\
-      ln -sf automake-1.15 $SNAPCRAFT_PART_INSTALL/usr/bin/automake\nfor sofile in\
-      \ libc.so libm.so libpthread.so; do\n    sed -Ei 's|(/usr/lib/$SNAPCRAFT_ARCH_TRIPLET)|/snap/mycroft/current\\\
-      1|g' $SNAPCRAFT_PART_INSTALL/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/$sofile\ndone\n"
     plugin: nil
     stage:
     - -usr/bin/sudo
     stage-packages:
-    - yad
     - psmisc
-    - autoconf
-    - automake
+    #- autoconf
+    #- automake
     - binutils
-    - bison
-    - build-essential
-    - cmake
+    #- bison
+    #- build-essential
+    #- cmake
     - coreutils
     - curl
     - flac
     - freeglut3
-    - g++
-    - gcc
+    #- g++
+    #- gcc
     - git
     - jq
     - libportaudio2
-    - libc++-dev
-    - libc6-dev
+    #- libc++-dev
+    #- libc6-dev
     - libfann-dev
     - libffi-dev
     - libglib2.0-dev
-    - libglu1-mesa
+    #- libglu1-mesa
     - libgpm2
     - libicu-dev
     - libjack-jackd2-0
-    - libjpeg-dev
-    - libpcre2-dev
+    #- libjpeg-dev
+    #- libpcre2-dev
     - portaudio19-dev
     - libslang2
-    - libssl-dev
+    #- libssl-dev
     - libtool
     - libvlc-dev
+    - locales-all
     - make
     - mpg123
     - mplayer
     - pkg-config
     - procps
     - pulseaudio-utils
-    - python3
-    - python3-dev
-    - python3-pip
-    - python3-setuptools
-    - python3-venv
-    - rsync
-    - screen
+    #- python3
+    #- python3-dev
+    #- python3-pip
+    #- python3-setuptools
+    #- python3-venv
+    #- rsync
+    #- screen
     - swig
     - vlc
     - zlib1g
+    - libasound2
+    - libasound2-plugins
+    - yad
   scripts:
     build-packages: []
     organize:
-      mycroft-*: bin/
+      '*': bin/
     plugin: dump
     source: scripts
     source-type: local
-    stage:
-    - bin/mycroft-*
     stage-packages: []
   snapcraft-preload:
     build-packages:

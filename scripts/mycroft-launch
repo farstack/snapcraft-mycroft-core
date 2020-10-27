@@ -1,17 +1,21 @@
 #!/bin/bash
 
+exit_status=0
+
 cd $SNAP_USER_COMMON
 
-if [ ! -d "$SNAP_USER_COMMON/logs" ]; then
-    mkdir -p "$SNAP_USER_COMMON/logs"
-fi
+$SNAP/bin/start_useraudio 2>&1 >/dev/null &
+audio_pid=$?
 
+cleanup() {
+    kill $audio_pid
+    exit $exit_status
+}
 
-snapcraft-preload mycroft-audio >> /$SNAP_USER_COMMON/logs/audio.log 2>&1 &
-audio_pid=$!
+trap cleanup INT TERM
 
 mycroft-cli-client
-
-echo "Stopping all audio..."
-kill "$audio_pid"
-echo "Stopped"
+# If the script exits on its own something went wrong.
+# Exit with this exit code.
+exit_status=$?
+cleanup
