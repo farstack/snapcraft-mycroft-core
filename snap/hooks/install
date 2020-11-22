@@ -12,4 +12,8 @@ fi
 if ! grep -q snap_core= /proc/cmdline
 then 
     snapctl stop --disable mycroft.audio
+    snapctl stop --disable mycroft.speech
+    snapctl stop --disable mycroft.skills
+    snapctl stop --disable mycroft.enclosure
+    snapctl stop --disable mycroft.messagebus
 fi

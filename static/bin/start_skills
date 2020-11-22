@@ -1,6 +1,6 @@
 #!/bin/sh 
 
-TMPDIR=/tmp/skills
+TMPDIR=$SNAP_USER_COMMON/skills
 export TMPDIR
 mkdir -p $TMPDIR
 

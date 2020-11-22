@@ -1,0 +1,21 @@
+#!/bin/bash
+
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit 1
+fi
+
+
+
+for dir in \
+    "/home/*/snap/mycroft/common/" \
+    "/home/*/snap/mycroft/current/" \
+    "/root/snap/mycroft/common/" \
+    "/root/snap/mycroft/current/" \
+    "/tmp/snap.mycroft/tmp/" \
+    "/var/snap/mycroft/current/" \
+    "/var/snap/mycroft/common/";
+do
+    rm -rf ${dir}*
+    rm -rf ${dir}.*
+done

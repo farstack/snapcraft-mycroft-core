@@ -18,6 +18,7 @@ description: |
 
 environment:
   LOCPATH: $SNAP/usr/lib/locale
+  MYCROFT_WEB_CACHE: $SNAP_USER_DATA/mycroft_web_cache.json
 
 plugs:
   gnome-3-28-1804:
@@ -41,21 +42,21 @@ grade: stable
 layout:
   /etc/mycroft/mycroft.conf:
     bind-file: $SNAP/etc/mycroft/mycroft.conf
-  /usr/include:
-    bind: $SNAP/usr/include
   /var/tmp:
     bind: $SNAP_COMMON/vartmp
   /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib:
     bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib
   /opt/mycroft/skills:
-    bind: $SNAP_COMMON/mycroft-data/skills
+    bind: $SNAP/skills
   /usr/share/alsa:
     bind: $SNAP/usr/share/alsa
 
 
 apps:
   messagebus:
-    command: $SNAP/bin/snapcraft-preload $SNAP/bin/mycroft-messagebus
+    command-chain: 
+      - bin/snapcraft-preload
+    command: $SNAP/bin/mycroft-messagebus
     daemon: simple
     environment:
       SWIG_LIB: $SNAP/usr/share/swig3.0
@@ -102,7 +103,8 @@ apps:
     - network-bind
 
   speech:
-    command: $SNAP/bin/snapcraft-preload $SNAP/bin/mycroft-speech-client
+    command-chain: [bin/snapcraft-preload,snap/command-chain/alsa-launch]
+    command: $SNAP/bin/mycroft-speech-client
     daemon: simple
     environment:
       SWIG_LIB: $SNAP/usr/share/swig3.0
@@ -117,7 +119,9 @@ apps:
   
 
   enclosure:
-    command: $SNAP/bin/snapcraft-preload $SNAP/bin/mycroft-enclosure-client
+#    command-chain: 
+#      - bin/snapcraft-preload
+    command: $SNAP/bin/mycroft-enclosure-client
     daemon: simple
     environment:
       SWIG_LIB: $SNAP/usr/share/swig3.0
@@ -135,7 +139,7 @@ apps:
     command-chain: 
       - snap/command-chain/alsa-launch
       - bin/copy-autostart
-      - bin/snapcraft-preload
+      #- bin/snapcraft-preload
     command: bin/mycroft-launch
     environment:
       SWIG_LIB: $SNAP/usr/share/swig3.0
@@ -172,7 +176,9 @@ parts:
 
   mycroft:
     after: [snapcraft-preload]
-    source: https://github.com/mycroftai/mycroft-core.git
+    #source: https://github.com/mycroftai/mycroft-core.git
+    source: ./mycroft-core
+    #source-branch: 'bugfix/issue-2727'
     plugin: python
     python-version: python3
     build-packages: 
@@ -182,19 +188,36 @@ parts:
       - g++
       - libfann2
       - libfann-dev
-    stage-packages: [python3-pyaudio, python3-six, libfann2, git, python3-pip]
+    stage-packages: [python3-pyaudio, python3-six, libfann2, git, python3-pip, python-alsaaudio, mpg123, vlc]
 #    python-packages: [six==1.13.0, pocketsphinx==0.1.0, fann2==1.0.7, padatious==0.4.8]
-    python-packages: [fann2==1.0.7]
-    override-build: |
-      echo "LS0tIGxvY2sucHkub3JpZwkyMDIwLTEwLTEwIDEyOjAwOjQ4Ljc0Njc4Mzc1NCAtMDcwMAorKysgbG9jay5weS5uZXcJMjAyMC0xMC0xMCAxMjowMToyMS4yNzQ0NTk4OTggLTA3MDAKQEAgLTk4LDggKzk4LDggQEAKIAogICAgICMKICAgICAjIENsYXNzIGNvbnN0YW50cwotICAgIERJUkVDVE9SWSA9ICcvdG1wL215Y3JvZnQnCi0gICAgRklMRSA9ICcve30ucGlkJworICAgIERJUkVDVE9SWSA9ICcvdG1wJworICAgIEZJTEUgPSAnL215Y3JvZnQue30ucGlkJwogCiAgICAgIwogICAgICMgQ29uc3RydWN0b3IK" |
-      base64 -d | patch mycroft/lock/__init__.py
-      snapcraftctl build
+    python-packages: 
+      - pyalsaaudio
+      - ddg3
+      - fann2==1.0.7
+      - feedparser
+      - geocoder
+      - holidays
+      - ifaddr
+      - mtranslate
+      - multi_key_dict
+      - num2words
+      - pyjokes
+      - pyowm
+      - pytz
+      - timezonefinder
+      - wikipedia
+      - wolframalpha
+      - py_mplayer
+      - pychromecast
+      - python-vlc
+    
 
 
   alsa-mixin:
     plugin: dump
     source: https://github.com/diddlesnaps/snapcraft-alsa.git
     source-subdir: snapcraft-assets
+    stage-packages: [libasound2-plugins]
     build-packages:
       - libasound2-dev
 
@@ -242,3 +265,40 @@ parts:
     organize:
       '*': lib/python3.6/site-packages/mycroft-installer/
 
+  skils:
+    plugin: dump
+    source: ./skills
+    override-pull: |
+      mkdir skills
+      cd skills
+      for url in https://github.com/MycroftAI/skill-query \
+        https://github.com/mycroftai/fallback-unknown \
+        https://github.com/mycroftai/fallback-wolfram-alpha \
+        https://github.com/mycroftai/skill-alarm \
+        https://github.com/mycroftai/skill-audio-record \
+        https://github.com/mycroftai/skill-configuration \
+        https://github.com/mycroftai/skill-date-time \
+        https://github.com/mycroftai/fallback-duckduckgo \
+        https://github.com/mycroftai/skill-hello-world \
+        https://github.com/mycroftai/skill-installer \
+        https://github.com/mycroftai/skill-ip \
+        https://github.com/mycroftai/skill-joke \
+        https://github.com/mycroftai/skill-naptime \
+        https://github.com/mycroftai/skill-npr-news \
+        https://github.com/mycroftai/skill-pairing \
+        https://github.com/mycroftai/skill-personal \
+        https://github.com/mycroftai/skill-playback-control \
+        https://github.com/mycroftai/skill-reminder \
+        https://github.com/mycroftai/skill-singing \
+        https://github.com/mycroftai/skill-speak \
+        https://github.com/mycroftai/skill-spelling \
+        https://github.com/mycroftai/skill-stock \
+        https://github.com/mycroftai/skill-stop \
+        https://github.com/mycroftai/skill-support \
+        https://github.com/mycroftai/mycroft-timer \
+        https://github.com/mycroftai/skill-version-checker \
+        https://github.com/mycroftai/skill-volume \
+        https://github.com/mycroftai/skill-weather \
+        https://github.com/mycroftai/skill-wiki;
+        do git clone $url
+      done
