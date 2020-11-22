@@ -176,9 +176,9 @@ parts:
 
   mycroft:
     after: [snapcraft-preload]
-    #source: https://github.com/mycroftai/mycroft-core.git
-    source: ./mycroft-core
-    #source-branch: 'bugfix/issue-2727'
+    source: https://github.com/mycroftai/mycroft-core.git
+    #source: ./mycroft-core
+    source-branch: 'bugfix/issue-2727'
     plugin: python
     python-version: python3
     build-packages: 
